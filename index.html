@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef3fb">
+<title>Winter Arc Tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%237f9cf0%22 stroke-width=%222.6%22 stroke-linecap=%22round%22><path d=%22M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#eef3fb; --card:#ffffff; --ink:#26324a; --mute:#72809a; --line:#e0e8f4;
+  --mint:#bfe9d6; --sky:#bcdcf6; --lav:#d6ccf5; --peach:#ffd8c0; --rose:#ffcdda; --lemon:#fff0b5;
+  --accent:#7f9cf0; --accent-ink:#2f4ba8;
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;padding:0 0 calc(86px + env(safe-area-inset-bottom,0px));line-height:1.45;
+  background-image:radial-gradient(circle at 12% -10%,#dfe8ff 0,transparent 45%),radial-gradient(circle at 100% 0,#f1e6ff 0,transparent 40%);background-attachment:fixed}
+h1,h2,h3{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:10px}
+.wrap{max-width:720px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 0}
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+header.top h1{font-size:1.5rem}
+.sync{font-size:.8rem;color:var(--mute)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-around;gap:2px;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:14px;font-size:.7rem;color:var(--mute)}
+nav button em{font-style:normal}
+nav button.on{background:var(--sky);color:var(--accent-ink);font-weight:700}
+@media(min-width:760px){
+  body{padding-bottom:30px}
+  nav{position:sticky;top:0;bottom:auto;border-top:0;border-bottom:1px solid var(--line);justify-content:center;padding:8px}
+  nav button{flex:0 0 auto;flex-direction:row;gap:6px;padding:8px 14px;font-size:.9rem}
+  nav button svg{width:18px;height:18px}
+}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:0 1px 0 var(--line),0 8px 24px -16px rgba(60,80,140,.35)}
+.card h2{font-size:1.1rem;margin-bottom:10px}
+.hero{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,var(--sky),var(--lav))}
+.ring{--p:0;width:92px;height:92px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:conic-gradient(#fff calc(var(--p)*1%),rgba(255,255,255,.4) 0)}
+.ring div{width:72px;height:72px;border-radius:50%;background:#f5f8ff;display:grid;place-items:center;text-align:center;line-height:1.1}
+.ring b{font-family:'Bricolage Grotesque',sans-serif;font-size:1.5rem}
+.ring small{font-size:.68rem;color:var(--mute)}
+.hero h2{margin:0 0 2px;font-size:1.3rem}
+.hero p{color:#3d4b6d;font-size:.92rem}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.grow{flex:1;min-width:0;overflow-wrap:anywhere}
+.sub{font-size:.8rem;color:var(--mute)}
+.chk{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;flex:none;border:2px solid var(--c,var(--line));background:#fff;color:transparent;font-weight:700;font-size:1.05rem;transition:.15s}
+.chk.on{background:var(--c);color:var(--ink)}
+.fire{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:.9rem;background:var(--lemon);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.fire svg{color:#f08a24}.fire.zero svg{color:#b3bfd4}.fire.zero{background:#f1f4fa;color:var(--mute);font-weight:500}
+.x{display:inline-flex;color:var(--mute);font-size:1.1rem;padding:6px 10px;border-radius:10px}
+.x:hover{background:var(--rose);color:var(--ink)}
+form.add{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+input,select{background:#f6f9ff;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+input[type=text],input[type=number],input[type=date]{flex:1 1 140px}
+input:focus,select:focus{border-color:var(--accent);outline:0}
+.btn{background:var(--accent);color:#fff;font-weight:700;border-radius:12px;padding:10px 16px}
+.btn.soft{background:var(--sky);color:var(--accent-ink)}
+.btn.warn{background:var(--rose);color:#7a2540}
+.btn:active{transform:scale(.97)}
+.dots{display:flex;gap:4px;margin-top:6px}
+.dots i{width:12px;height:12px;border-radius:4px;background:#edf1f8}
+.dots i.on{background:var(--c)}
+.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.calhead h2{margin:0}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.dow{text-align:center;font-size:.72rem;color:var(--mute)}
+.day{aspect-ratio:1;border-radius:12px;border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:.9rem;background:#f4f7fc;min-height:40px}
+.day.today{border-color:var(--accent)}
+.day.sel{box-shadow:0 0 0 3px var(--lav)}
+.day small{font-size:.62rem;color:var(--mute)}
+.day.full::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);margin-top:2px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--mint);border-radius:999px;padding:4px 12px;font-size:.85rem}
+.chip:nth-child(2){background:var(--peach)}.chip:nth-child(3){background:var(--lemon)}
+.bar{height:10px;border-radius:99px;background:#edf1f8;overflow:hidden;margin:6px 0 10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),var(--sky));border-radius:99px}
+.note{display:flex;align-items:center;gap:8px;background:var(--lemon);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:.92rem}
+.empty{color:var(--mute);font-size:.92rem;padding:6px 0}
+.water{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.water .drop{display:inline-flex;color:#c5d3ea}
+.water .drop.on{color:#5b9bf0}.water .drop.on svg{fill:currentColor}
+.water .btn{padding:6px 12px}
+svg.chart{width:100%;height:auto;display:block}
+details{margin-top:10px;font-size:.9rem;color:#3d4b6d}
+summary{cursor:pointer;font-weight:700}
+details ol{padding-left:20px;margin-top:6px}
+details li{margin:3px 0}
+code{background:#eef2fb;border-radius:6px;padding:1px 6px;font-size:.85em;overflow-wrap:anywhere}
+label.l{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 4px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:10px 16px;border-radius:12px;font-size:.9rem;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+.toast.show{opacity:1}
+@media(min-width:760px){.toast{bottom:30px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.ic{flex:none;display:block}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:12px;background:var(--sky);color:var(--accent-ink);display:grid;place-items:center}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--c);margin-right:8px}
+.sw{display:flex;gap:8px;align-items:center;padding:0 4px}
+.sw span{position:relative;display:inline-block}
+.sw input{position:absolute;opacity:0;width:0;height:0;padding:0;border:0;min-width:0}
+.sw label{display:block;width:26px;height:26px;border-radius:50%;background:var(--c);cursor:pointer;box-shadow:0 0 0 1.5px var(--line)}
+.sw input:checked+label{box-shadow:0 0 0 2.5px var(--accent)}
+.sw input:focus-visible+label{outline:3px solid var(--accent);outline-offset:2px}
+.calhead .btn{display:grid;place-items:center;padding:8px 12px}
+.seg{display:flex;gap:6px;background:#fff;border-radius:14px;padding:5px;margin-bottom:14px;box-shadow:0 1px 0 var(--line)}
+.seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border-radius:10px;color:var(--mute);font-size:.9rem}
+.seg button.on{background:var(--sky);color:var(--accent-ink);font-weight:700}
+.wtr{display:flex;gap:16px;align-items:center}
+.bottle{width:56px;height:96px;border:3px solid var(--sky);border-radius:14px 14px 18px 18px;position:relative;overflow:hidden;flex:none;background:#f4f8ff}
+.bottle i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#9cc8f5,#6ea6ee);transition:height .4s}
+.big{font-family:'Bricolage Grotesque','DM Sans',sans-serif;font-size:1.8rem;font-weight:700;line-height:1.1}
+.fl{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--mute);flex:1 1 120px}
+.fl input{width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1 class="brand"><span class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg></span>Winter Arc</h1><span class="sync" id="syncState"></span></header>
+  <div id="app"></div>
+</div>
+<nav id="nav" aria-label="Main"></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const today=()=>fmt(new Date());
+const between=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const COLORS=['#bfe9d6','#bcdcf6','#d6ccf5','#ffd8c0','#ffcdda','#fff0b5'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MEALS=['Breakfast','Lunch','Snack','Dinner'];
+const P={
+ home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ habit:'<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.8"/>',
+ cal:'<rect x="3" y="4.5" width="18" height="16.5" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+ scale:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10a4 4 0 0 1 8 0z"/><path d="m12 10 1.6-2"/>',
+ food:'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+ sliders:'<path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+ flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+ drop:'<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+ tick:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+ x:'<path d="M6 6l12 12M18 6 6 18"/>',
+ left:'<path d="m15 6-6 6 6 6"/>',
+ right:'<path d="m9 6 6 6-6 6"/>',
+ chart:'<path d="M5 21v-6M12 21V9M19 21V3"/>',
+ pulse:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+ moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'
+};
+const ic=(n,s=20)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const TABS=[['today','Today','home'],['habits','Habits','habit'],['cal','Calendar','cal'],['goals','Goals','target'],['body','Health','pulse'],['diet','Diet','food'],['sync','Settings','sliders']];
+$('#nav').innerHTML=TABS.map(([t,l,i])=>`<button data-t="${t}">${ic(i,22)}<em>${l}</em></button>`).join('');
+
+/* ---------- state ---------- */
+const KEY='winterArc.v1';
+const DEF={start:today(),days:90,habits:[],goals:[],weights:[],meals:[],water:{},waterMl:{},sleeps:[],waterGoal:3,sleepGoal:8,updated:0,driveClientId:''};
+let S;
+try{S={...DEF,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){S={...DEF}}
+const V={tab:'today',hs:'weight',cv:'grid',cal:new Date(),sel:today(),diet:today()};
+function migrate(){if(S.water&&Object.keys(S.water).length){S.waterMl=S.waterMl||{};for(const d in S.water)S.waterMl[d]=(S.waterMl[d]||0)+S.water[d]*250;S.water={}}}
+let syncTimer=null;
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Storage is full or blocked in this browser')}}
+function save(){S.updated=Date.now();persist();if(tok){clearTimeout(syncTimer);syncTimer=setTimeout(driveSync,2500)}render()}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
+
+/* ---------- habit logic ---------- */
+function streak(h){
+  let d=new Date();if(!h.done[fmt(d)])d.setDate(d.getDate()-1);
+  let n=0;while(h.done[fmt(d)]){n++;d.setDate(d.getDate()-1)}return n;
+}
+function bestStreak(h){
+  const k=Object.keys(h.done).filter(x=>h.done[x]).sort();let best=0,run=0,prev=null;
+  for(const x of k){run=(prev&&between(prev,x)===1)?run+1:1;best=Math.max(best,run);prev=x}return best;
+}
+function ratio(date){
+  if(!S.habits.length)return 0;
+  return S.habits.filter(h=>h.done[date]).length/S.habits.length;
+}
+function last7(h){
+  const out=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);out.push(!!h.done[fmt(d)])}return out;
+}
+function habitRow(h,date){
+  const on=!!h.done[date],s=streak(h);
+  return `<div class="row"><button class="chk ${on?'on':''}" style="--c:${h.color}" data-a="tog" data-id="${h.id}" data-d="${date}" aria-label="Mark ${esc(h.name)} done" aria-pressed="${on}">${ic('tick',18)}</button>
+  <div class="grow"><b><span class="dot" style="--c:${h.color}"></span>${esc(h.name)}</b></div>
+  <span class="fire ${s?'':'zero'}">${ic('flame',15)}${s}</span></div>`;
+}
+
+/* ---------- goals ---------- */
+function goalList(type,period){
+  const g=S.goals.filter(x=>x.type===type&&x.p===period);
+  return g.length?g.map(x=>`<div class="row"><button class="chk ${x.done?'on':''}" style="--c:var(--mint)" data-a="goal" data-id="${x.id}" aria-label="Toggle goal" aria-pressed="${!!x.done}">${ic('tick',18)}</button>
+    <div class="grow" ${x.done?'style="text-decoration:line-through;color:var(--mute)"':''}>${esc(x.t)}</div>
+    <button class="x" data-a="delgoal" data-id="${x.id}" aria-label="Delete goal">${ic('x',16)}</button></div>`).join(''):'<p class="empty">No goals yet. Add one below.</p>';
+}
+function goalForm(type,period,ph){
+  return `<form class="add" data-form="goal"><input type="hidden" name="type" value="${type}"><input type="hidden" name="p" value="${period}">
+  <input type="text" name="t" placeholder="${ph}" required maxlength="120"><button class="btn">Add goal</button></form>`;
+}
+function goalBar(type,period){
+  const g=S.goals.filter(x=>x.type===type&&x.p===period);if(!g.length)return '';
+  const p=Math.round(g.filter(x=>x.done).length/g.length*100);
+  return `<div class="bar"><i style="width:${p}%"></i></div>`;
+}
+
+/* ---------- health helpers ---------- */
+const L=ml=>(+(ml/1000).toFixed(2))+' L';
+const mins=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+const dur=e=>{let d=mins(e.wake)-mins(e.bed);if(d<=0)d+=1440;return d};
+const hm=m=>Math.floor(m/60)+'h '+pad(m%60)+'m';
+const t12=m=>{const h=Math.floor(m/60)%24;return (h%12||12)+':'+pad(m%60)+' '+(h<12?'AM':'PM')};
+const lastDays=n=>{const o=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);o.push(fmt(d))}return o};
+function bars(vals,labels,goal,fv,cf,o={}){
+  const W=320,H=160,P=20,n=vals.length,top=16,max=Math.max(goal,...vals,1)*1.12,bw=(W-2*P)/n,base=H-24;
+  const Y=v=>base-(v/max)*(base-top);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Last ${n} days">
+   <line x1="${P}" x2="${W-P}" y1="${base}" y2="${base}" stroke="#e0e8f4"/>
+   <line x1="${P}" x2="${W-P}" y1="${Y(goal)}" y2="${Y(goal)}" stroke="#9aa9c6" stroke-dasharray="4 4"/>
+   <text x="${W-P}" y="${Y(goal)-4}" font-size="9" text-anchor="end" fill="#72809a">goal ${fv(goal)}</text>
+   ${vals.map((v,i)=>{const x=P+i*bw+bw*.17,w=bw*.66;return `<rect x="${x}" y="${Y(v)}" width="${w}" height="${Math.max(0,base-Y(v))}" rx="4" fill="${cf(v)}"/>${v&&!o.noval?`<text x="${x+w/2}" y="${Y(v)-3}" font-size="8" text-anchor="middle" fill="#72809a">${fv(v)}</text>`:''}${i%(o.every||1)===0?`<text x="${x+w/2}" y="${H-8}" font-size="8.5" text-anchor="middle" fill="#72809a">${labels[i]}</text>`:''}`}).join('')}</svg>`;
+}
+const seg=()=>`<div class="seg" role="tablist">${[['weight','Weight','scale'],['water','Water','drop'],['sleep','Sleep','moon']].map(([k,l,i])=>`<button role="tab" aria-selected="${V.hs===k}" class="${V.hs===k?'on':''}" data-a="hs" data-k="${k}">${ic(i,16)}${l}</button>`).join('')}</div>`;
+const segCal=()=>`<div class="seg" role="tablist">${[['grid','Calendar','cal'],['month','Monthly graph','chart']].map(([k,l,i])=>`<button role="tab" aria-selected="${V.cv===k}" class="${V.cv===k?'on':''}" data-a="cv" data-k="${k}">${ic(i,16)}${l}</button>`).join('')}</div>`;
+function waterCard(d){
+  const ml=S.waterMl[d]||0,p=Math.min(100,ml/(S.waterGoal*1000)*100);
+  const b=(n,l)=>`<button class="btn soft" data-a="wml" data-n="${n}" data-d="${d}">${l}</button>`;
+  return `<div class="card"><h2>Water</h2><div class="wtr"><div class="bottle" role="img" aria-label="${Math.round(p)} percent of daily goal"><i style="height:${p}%"></i></div>
+   <div class="grow"><div class="big">${L(ml)}</div><div class="sub">of ${S.waterGoal} L goal</div>
+   <div class="chips" style="margin-top:10px">${b(250,'+250 ml')}${b(500,'+500 ml')}${b(1000,'+1 L')}<button class="btn warn" data-a="wml" data-n="-250" data-d="${d}">Undo 250 ml</button></div></div></div></div>`;
+}
+
+/* ---------- views ---------- */
+const views={
+today(){
+  const t=today(),dn=between(S.start,t)+1;
+  let title,sub;
+  if(dn<1){title='Starts soon';sub=`Your arc begins in ${1-dn} day${1-dn>1?'s':''}.`}
+  else if(dn>S.days){title='Arc complete';sub='You finished the challenge. Start a new one in Settings.'}
+  else{title=`Day ${dn} of ${S.days}`;sub=`${S.days-dn} days to go. Show up today.`}
+  const p=Math.max(0,Math.min(100,dn/S.days*100));
+  const done=S.habits.filter(h=>h.done[t]).length;
+  const lastW=[...S.weights].sort((a,b)=>a.date.localeCompare(b.date)).pop();
+  const wDue=!lastW||between(lastW.date,t)>=15;
+  const kcal=S.meals.filter(m=>m.date===t).reduce((a,m)=>a+(+m.kcal||0),0);
+  const se=S.sleeps.find(x=>x.date===t);
+  return `<div class="card hero"><div class="ring" style="--p:${p}"><div><span><b>${Math.max(0,Math.min(dn,S.days))}</b><br><small>of ${S.days}</small></span></div></div>
+    <div><h2>${title}</h2><p>${sub}</p></div></div>
+  ${wDue?`<div class="note">${ic('scale',18)} Weight check-in is due. <a href="#" data-a="go" data-t="body" data-hs="weight">Log it</a></div>`:''}
+  <div class="card"><h2>Today's habits ${S.habits.length?`<span class="sub">(${done}/${S.habits.length})</span>`:''}</h2>
+    ${S.habits.length?S.habits.map(h=>habitRow(h,t)).join(''):'<p class="empty">No habits yet. Add your first one in Habits.</p>'}
+    ${S.habits.length?'':'<button class="btn soft" data-a="go" data-t="habits">Add a habit</button>'}</div>
+  <div class="card"><h2>Today's goals</h2>${goalBar('d',t)}${goalList('d',t)}${goalForm('d',t,'What must get done today?')}</div>
+  ${waterCard(t)}
+  <div class="card"><h2>Sleep and food</h2>
+    <div class="row"><div class="grow"><b>Sleep</b><div class="sub">${se?hm(dur(se))+' last night':'Not logged yet'}</div></div><button class="btn soft" data-a="go" data-t="body" data-hs="sleep">${se?'View':'Log'}</button></div>
+    <div class="row"><div class="grow"><b>Food</b><div class="sub">${kcal?kcal+' kcal logged today':'No meals logged today'}</div></div><button class="btn soft" data-a="go" data-t="diet">Open</button></div></div>`;
+},
+habits(){
+  return `<div class="card"><h2>Your habits</h2>
+  ${S.habits.length?S.habits.map(h=>`<div class="row"><div class="grow"><b><span class="dot" style="--c:${h.color}"></span>${esc(h.name)}</b>
+    <div class="sub">Best streak: ${bestStreak(h)} days</div>
+    <div class="dots" style="--c:${h.color}">${last7(h).map(o=>`<i class="${o?'on':''}"></i>`).join('')}</div></div>
+    <span class="fire ${streak(h)?'':'zero'}">${ic('flame',15)}${streak(h)}</span>
+    <button class="x" data-a="delhabit" data-id="${h.id}" aria-label="Delete ${esc(h.name)}">${ic('x',16)}</button></div>`).join(''):'<p class="empty">Nothing here yet. Try “Wake up at 6”, “Workout” or “Read 20 pages”.</p>'}
+  <form class="add" data-form="habit">
+    <div class="sw" role="radiogroup" aria-label="Colour">${COLORS.map((c,i)=>`<span style="--c:${c}"><input type="radio" name="color" id="c${i}" value="${c}" ${i===S.habits.length%COLORS.length?'checked':''}><label for="c${i}" aria-label="Colour ${i+1}"></label></span>`).join('')}</div>
+    <input type="text" name="name" placeholder="New habit name" required maxlength="50">
+    <button class="btn">Add habit</button></form></div>`;
+},
+cal(){return segCal()+(V.cv==='month'?views.monthly():views.calGrid())},
+monthly(){
+  const c=V.cal,y=c.getFullYear(),m=c.getMonth(),n=new Date(y,m+1,0).getDate(),t=today(),mk=y+'-'+pad(m+1);
+  const ds=Array.from({length:n},(_,i)=>mk+'-'+pad(i+1)),past=ds.filter(d=>d<=t),hn=S.habits.length;
+  const pct=ds.map(d=>d<=t&&hn?Math.round(ratio(d)*100):0);
+  const total=past.length*hn,done=past.reduce((a,d)=>a+S.habits.filter(h=>h.done[d]).length,0);
+  const comp=total?Math.round(done/total*100):0,perfect=hn?past.filter(d=>ratio(d)===1).length:0;
+  const mg=S.goals.filter(g=>g.type==='m'&&g.p===mk),mgd=mg.filter(g=>g.done).length;
+  const wv=ds.map(d=>(S.waterMl[d]||0)/1000),wu=wv.filter(v=>v>0),wavg=wu.length?wu.reduce((a,b)=>a+b,0)/wu.length:0;
+  const by=Object.fromEntries(S.sleeps.map(x=>[x.date,x])),sv=ds.map(d=>by[d]?+(dur(by[d])/60).toFixed(1):0),su=sv.filter(v=>v>0),savg=su.length?su.reduce((a,b)=>a+b,0)/su.length:0;
+  const ws=S.weights.filter(w=>w.date.startsWith(mk)).sort((a,b)=>a.date.localeCompare(b.date));
+  let wchip='<span class="chip">No weight logged</span>';
+  if(ws.length){const a=ws[0].kg,b=ws[ws.length-1].kg,d=(b-a).toFixed(1);wchip=`<span class="chip">Weight ${a} to ${b} kg (${d>0?'+':''}${d})</span>`}
+  const labels=ds.map(d=>+d.slice(8)),opt={noval:true,every:2};
+  return `<div class="card"><div class="calhead"><button class="btn soft" data-a="mon" data-n="-1" aria-label="Previous month">${ic('left',18)}</button>
+    <h2>${MONTHS[m]} ${y}</h2><button class="btn soft" data-a="mon" data-n="1" aria-label="Next month">${ic('right',18)}</button></div>
+    <div class="chips"><span class="chip">${comp}% habits done</span><span class="chip">${perfect} perfect day${perfect===1?'':'s'}</span><span class="chip">Goals ${mgd}/${mg.length}</span></div></div>
+  <div class="card"><h2>Habits each day</h2>${hn?bars(pct,labels,100,v=>Math.round(v)+'%',v=>v>=100?'#8fd6b6':'#a9c8f2',opt):'<p class="empty">Add habits to see this graph.</p>'}</div>
+  <div class="card"><h2>By habit</h2>${hn?S.habits.map(h=>{const dn=past.filter(d=>h.done[d]).length,p=past.length?Math.round(dn/past.length*100):0;
+    return `<div class="row" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px"><b><span class="dot" style="--c:${h.color}"></span>${esc(h.name)}</b><span class="sub">${dn}/${past.length} days, ${p}%</span></div><div class="bar" style="margin:6px 0 0"><i style="width:${p}%;background:${h.color}"></i></div></div>`}).join(''):'<p class="empty">No habits yet.</p>'}</div>
+  <div class="card"><h2>Water (litres)</h2>${bars(wv,labels,S.waterGoal,v=>+v.toFixed(1),v=>v>=S.waterGoal?'#8fd6b6':'#a9c8f2',opt)}<div class="chips" style="margin-top:8px"><span class="chip">Average ${wavg.toFixed(1)} L</span><span class="chip">Goal met ${wv.filter(v=>v>=S.waterGoal).length} days</span></div></div>
+  <div class="card"><h2>Sleep (hours)</h2>${bars(sv,labels,S.sleepGoal,v=>+v.toFixed(1),v=>v>=S.sleepGoal?'#8fd6b6':'#c3b6f0',opt)}<div class="chips" style="margin-top:8px"><span class="chip">${su.length?'Average '+hm(Math.round(savg*60)):'No sleep logged'}</span>${wchip}</div></div>`;
+},
+calGrid(){
+  const c=V.cal,y=c.getFullYear(),m=c.getMonth(),first=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),t=today();
+  let cells='';for(let i=0;i<first;i++)cells+='<div></div>';
+  let perfect=0;
+  for(let d=1;d<=n;d++){
+    const ds=y+'-'+pad(m+1)+'-'+pad(d),r=ratio(ds);if(r===1&&S.habits.length)perfect++;
+    const bg=r>0?`background:color-mix(in srgb,var(--mint) ${Math.round(30+r*70)}%,#fff)`:'';
+    cells+=`<button class="day ${ds===t?'today':''} ${ds===V.sel?'sel':''} ${r===1&&S.habits.length?'full':''}" style="${bg}" data-a="sel" data-d="${ds}" aria-label="${ds}">${d}</button>`;
+  }
+  const sel=V.sel;
+  return `<div class="card"><div class="calhead"><button class="btn soft" data-a="mon" data-n="-1" aria-label="Previous month">${ic('left',18)}</button>
+    <h2>${MONTHS[m]} ${y}</h2><button class="btn soft" data-a="mon" data-n="1" aria-label="Next month">${ic('right',18)}</button></div>
+    <div class="grid7">${['S','M','T','W','T','F','S'].map(x=>`<div class="dow">${x}</div>`).join('')}${cells}</div>
+    <p class="sub" style="margin-top:10px">Greener means more habits done. A dot marks a perfect day. Perfect days this month: ${perfect}</p></div>
+  <div class="card"><h2>${parse(sel).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}</h2>
+    ${S.habits.length?S.habits.map(h=>habitRow(h,sel)).join(''):'<p class="empty">Add habits to see them here.</p>'}
+    <h2 style="margin-top:14px">Goals for this day</h2>${goalList('d',sel)}${goalForm('d',sel,'Add a goal for this day')}</div>`;
+},
+goals(){
+  const t=today(),mk=t.slice(0,7),mm=MONTHS[+mk.slice(5)-1];
+  return `<div class="card"><h2>${mm} goals</h2>${goalBar('m',mk)}${goalList('m',mk)}${goalForm('m',mk,'A goal for this month')}</div>
+  <div class="card"><h2>Today's goals</h2>${goalBar('d',t)}${goalList('d',t)}${goalForm('d',t,'A goal for today')}</div>`;
+},
+weight(){
+  const t=today(),ws=[...S.weights].sort((a,b)=>a.date.localeCompare(b.date)),last=ws[ws.length-1];
+  let info='<p class="empty">Log your first weight to start the chart.</p>';
+  if(last){
+    const gap=between(last.date,t),left=15-gap,chg=(last.kg-ws[0].kg).toFixed(1);
+    info=`<div class="chips"><span class="chip">Now ${last.kg} kg</span><span class="chip">${chg>0?'+':''}${chg} kg since start</span>
+    <span class="chip">${left>0?'Next check-in in '+left+' days':'Check-in due'}</span></div>`;
+  }
+  let chart='';
+  if(ws.length>1){
+    const W=320,H=140,P=22,min=Math.min(...ws.map(x=>x.kg))-1,max=Math.max(...ws.map(x=>x.kg))+1;
+    const x0=parse(ws[0].date).getTime(),x1=parse(ws[ws.length-1].date).getTime()||1;
+    const X=d=>P+(x1===x0?0.5:(parse(d).getTime()-x0)/(x1-x0))*(W-2*P),Y=k=>H-P-(k-min)/(max-min)*(H-2*P);
+    chart=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight over time"><polyline fill="none" stroke="#7f9cf0" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="${ws.map(w=>X(w.date)+','+Y(w.kg)).join(' ')}"/>
+    ${ws.map(w=>`<circle cx="${X(w.date)}" cy="${Y(w.kg)}" r="5" fill="#fff" stroke="#7f9cf0" stroke-width="3"/><text x="${X(w.date)}" y="${Y(w.kg)-10}" font-size="10" text-anchor="middle" fill="#72809a">${w.kg}</text>`).join('')}</svg>`;
+  }
+  return `<div class="card"><h2>Weight check-ins</h2>${info}${chart}
+    <form class="add" data-form="weight"><input type="date" name="date" value="${t}" required><input type="number" name="kg" step="0.1" min="20" max="400" placeholder="Weight (kg)" required><button class="btn">Save weight</button></form></div>
+  <div class="card"><h2>History</h2>${ws.length?[...ws].reverse().map(w=>`<div class="row"><div class="grow"><b>${w.kg} kg</b><div class="sub">${w.date}</div></div><button class="x" data-a="delw" data-id="${w.id}" aria-label="Delete entry">${ic('x',16)}</button></div>`).join(''):'<p class="empty">No entries yet.</p>'}</div>`;
+},
+body(){return seg()+views[V.hs]()},
+water(){
+  const ds=lastDays(14),vals=ds.map(d=>(S.waterMl[d]||0)/1000),used=vals.filter(v=>v>0);
+  const avg=used.length?used.reduce((a,b)=>a+b,0)/used.length:0,hit=vals.filter(v=>v>=S.waterGoal).length;
+  return waterCard(today())+`<div class="card"><h2>Last 14 days</h2>${bars(vals,ds.map(d=>+d.slice(8)),S.waterGoal,v=>+v.toFixed(1),v=>v>=S.waterGoal?'#8fd6b6':'#a9c8f2')}
+   <div class="chips" style="margin-top:8px"><span class="chip">Goal met ${hit} of 14 days</span><span class="chip">Average ${avg.toFixed(1)} L</span></div></div>`;
+},
+sleep(){
+  const t=today(),ds=lastDays(14),by=Object.fromEntries(S.sleeps.map(x=>[x.date,x]));
+  const vals=ds.map(d=>by[d]?+(dur(by[d])/60).toFixed(1):0);
+  const rec=[...S.sleeps].sort((a,b)=>b.date.localeCompare(a.date)),l7=rec.slice(0,7);let stats='<p class="empty">Log a night to see averages.</p>';
+  if(l7.length){
+    const avg=l7.reduce((a,e)=>a+dur(e),0)/l7.length;
+    const bed=l7.reduce((a,e)=>{let m=mins(e.bed);if(m<720)m+=1440;return a+m},0)/l7.length;
+    const wk=l7.reduce((a,e)=>a+mins(e.wake),0)/l7.length;
+    stats=`<div class="chips" style="margin-top:8px"><span class="chip">Average ${hm(Math.round(avg))}</span><span class="chip">Bed ${t12(Math.round(bed)%1440)}</span><span class="chip">Wake ${t12(Math.round(wk))}</span></div>`;
+  }
+  return `<div class="card"><h2>Log sleep</h2><form class="add" data-form="sleep">
+   <label class="fl">Wake-up date<input type="date" name="date" value="${t}" required></label>
+   <label class="fl">Went to bed<input type="time" name="bed" value="23:00" required></label>
+   <label class="fl">Woke up<input type="time" name="wake" value="06:30" required></label>
+   <button class="btn" style="align-self:flex-end">Save sleep</button></form></div>
+  <div class="card"><h2>Last 14 days</h2>${bars(vals,ds.map(d=>+d.slice(8)),S.sleepGoal,v=>+v.toFixed(1),v=>v>=S.sleepGoal?'#8fd6b6':'#c3b6f0')}${stats}</div>
+  <div class="card"><h2>History</h2>${rec.length?rec.slice(0,14).map(e=>`<div class="row"><div class="grow"><b>${hm(dur(e))}</b><div class="sub">${e.date}: ${t12(mins(e.bed))} to ${t12(mins(e.wake))}</div></div><button class="x" data-a="delsleep" data-id="${e.id}" aria-label="Delete entry">${ic('x',16)}</button></div>`).join(''):'<p class="empty">No entries yet.</p>'}</div>`;
+},
+diet(){
+  const d=V.diet,ms=S.meals.filter(m=>m.date===d),kcal=ms.reduce((a,m)=>a+(+m.kcal||0),0),ml=S.waterMl[d]||0;
+  return `<div class="card"><h2>Diet log</h2>
+    <input type="date" value="${d}" data-chg="diet" style="width:100%" aria-label="Date">
+    <div class="chips" style="margin-top:10px"><span class="chip">${kcal} kcal</span><span class="chip">${L(ml)} water</span></div></div>
+  <div class="card"><h2>Meals</h2>
+    ${ms.length?MEALS.flatMap(type=>ms.filter(m=>m.type===type)).map(m=>`<div class="row"><div class="grow"><b>${esc(m.type)}</b>: ${esc(m.text)}<div class="sub">${m.kcal?m.kcal+' kcal':'No calories noted'}</div></div><button class="x" data-a="delmeal" data-id="${m.id}" aria-label="Delete meal">${ic('x',16)}</button></div>`).join(''):'<p class="empty">Nothing logged for this day.</p>'}
+    <form class="add" data-form="meal"><select name="type">${MEALS.map(x=>`<option>${x}</option>`).join('')}</select>
+      <input type="text" name="text" placeholder="What did you eat?" required maxlength="100">
+      <input type="number" name="kcal" min="0" max="5000" placeholder="kcal (optional)" style="flex:0 1 140px"><button class="btn">Add meal</button></form></div>`;
+},
+sync(){
+  return `<div class="card"><h2>Challenge</h2>
+    <label class="l" for="st">Start date</label><input id="st" type="date" value="${S.start}" data-set="start" style="width:100%">
+    <label class="l" for="dy">Length in days</label><input id="dy" type="number" min="7" max="365" value="${S.days}" data-set="days" style="width:100%"></div>
+  <div class="card"><h2>Daily targets</h2>
+    <label class="l" for="wg">Water goal (litres)</label><input id="wg" type="number" min="0.5" max="10" step="0.25" value="${S.waterGoal}" data-set="wgoal" style="width:100%">
+    <label class="l" for="sg">Sleep goal (hours)</label><input id="sg" type="number" min="3" max="14" step="0.5" value="${S.sleepGoal}" data-set="sgoal" style="width:100%"></div>
+  <div class="card"><h2>Backup</h2><p class="sub" style="margin-bottom:10px">Your data lives in this browser. Export a copy any time.</p>
+    <div class="chips"><button class="btn soft" data-a="export">Export file</button>
+    <label class="btn soft" style="cursor:pointer">Import file<input type="file" accept="application/json" data-chg="import" hidden></label>
+    <button class="btn warn" data-a="reset">Erase everything</button></div></div>
+  <div class="card"><h2>Move to another device</h2>
+    <p class="sub" style="margin-bottom:10px">No account or setup. Make a link, open it on your other device, and your data comes across. It is a one-time copy, not live sync.</p>
+    <div class="chips"><button class="btn" data-a="link">Copy link</button><button class="btn soft" data-a="share">Share link</button></div>
+    <p class="sub" style="margin-top:10px">The link contains your data, so only send it to yourself.</p></div>
+  <div class="card"><h2>Google Drive sync (advanced, optional)</h2>
+    <p class="sub">Keeps one private file in your own Drive so the same data shows up on your phone and laptop. Free. The app can only see the file it creates.</p>
+    <label class="l" for="cid">Google OAuth Client ID</label><input id="cid" type="text" value="${esc(S.driveClientId)}" data-set="client" placeholder="1234-abc.apps.googleusercontent.com" style="width:100%">
+    <div class="chips" style="margin-top:10px"><button class="btn" data-a="connect">Connect Drive</button><button class="btn soft" data-a="syncnow">Sync now</button></div>
+    <details><summary>How to get a Client ID (5 minutes, free)</summary><ol>
+      <li>Open <code>console.cloud.google.com</code> and create a project.</li>
+      <li>APIs and Services, then Library: enable <b>Google Drive API</b>.</li>
+      <li>OAuth consent screen: choose External, fill the app name and your email, and add yourself as a test user.</li>
+      <li>Credentials, then Create credentials, then OAuth client ID, type <b>Web application</b>.</li>
+      <li>Under Authorized JavaScript origins add your site address, for example <code>https://yourname.github.io</code>.</li>
+      <li>Paste the Client ID above and tap Connect Drive.</li></ol></details></div>`;
+}};
+
+function render(){
+  migrate();
+  $('#app').innerHTML=views[V.tab]();
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===V.tab));
+  $('#syncState').textContent=tok?'Drive connected':'Saved on this device';
+}
+
+/* ---------- events ---------- */
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b){V.tab=b.dataset.t;render();window.scrollTo(0,0)}});
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-a]');if(!el)return;
+  const a=el.dataset.a,id=el.dataset.id;
+  if(a==='go'){e.preventDefault();V.tab=el.dataset.t;if(el.dataset.hs)V.hs=el.dataset.hs;render();window.scrollTo(0,0);return}
+  if(a==='tog'){const h=S.habits.find(x=>x.id===id),d=el.dataset.d;if(h.done[d])delete h.done[d];else h.done[d]=1;save()}
+  else if(a==='delhabit'){if(confirm('Delete this habit and its streak?')){S.habits=S.habits.filter(x=>x.id!==id);save()}}
+  else if(a==='goal'){const g=S.goals.find(x=>x.id===id);g.done=!g.done;save()}
+  else if(a==='delgoal'){S.goals=S.goals.filter(x=>x.id!==id);save()}
+  else if(a==='delw'){S.weights=S.weights.filter(x=>x.id!==id);save()}
+  else if(a==='delmeal'){S.meals=S.meals.filter(x=>x.id!==id);save()}
+  else if(a==='wml'){const d=el.dataset.d;S.waterMl[d]=Math.max(0,Math.min(10000,(S.waterMl[d]||0)+ +el.dataset.n));save()}
+  else if(a==='hs'){V.hs=el.dataset.k;render()}
+  else if(a==='cv'){V.cv=el.dataset.k;render()}
+  else if(a==='delsleep'){S.sleeps=S.sleeps.filter(x=>x.id!==id);save()}
+  else if(a==='sel'){V.sel=el.dataset.d;render()}
+  else if(a==='mon'){V.cal=new Date(V.cal.getFullYear(),V.cal.getMonth()+ +el.dataset.n,1);render()}
+  else if(a==='export'){
+    const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),l=document.createElement('a');
+    l.href=u;l.download='winter-arc-'+today()+'.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+  else if(a==='reset'){if(confirm('Erase all habits, goals, weights and meals from this browser?')){S={...DEF,start:today(),driveClientId:S.driveClientId};save()}}
+  else if(a==='link')makeLink(false);
+  else if(a==='share')makeLink(true);
+  else if(a==='connect')driveConnect();
+  else if(a==='syncnow')tok?driveSync(true):toast('Connect Drive first');
+});
+document.addEventListener('submit',e=>{
+  const f=e.target.closest('form[data-form]');if(!f)return;e.preventDefault();
+  const v=Object.fromEntries(new FormData(f)),k=f.dataset.form;
+  if(k==='habit'){S.habits.push({id:uid(),name:v.name.trim(),color:v.color||COLORS[S.habits.length%COLORS.length],done:{}})}
+  else if(k==='goal'){S.goals.push({id:uid(),t:v.t.trim(),type:v.type,p:v.p,done:false})}
+  else if(k==='weight'){S.weights=S.weights.filter(w=>w.date!==v.date);S.weights.push({id:uid(),date:v.date,kg:+(+v.kg).toFixed(1)})}
+  else if(k==='sleep'){S.sleeps=S.sleeps.filter(x=>x.date!==v.date);S.sleeps.push({id:uid(),date:v.date,bed:v.bed,wake:v.wake})}
+  else if(k==='meal'){S.meals.push({id:uid(),date:V.diet,type:v.type,text:v.text.trim(),kcal:v.kcal?+v.kcal:0})}
+  save();
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.chg==='diet'&&t.value){V.diet=t.value;render()}
+  else if(t.dataset.chg==='import'){
+    const f=t.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const j=JSON.parse(r.result);if(!Array.isArray(j.habits))throw 0;S={...DEF,...j,driveClientId:S.driveClientId};save();toast('Imported')}catch(x){toast('That file is not a Winter Arc backup')}};
+    r.readAsText(f)}
+  else if(t.dataset.set==='start'&&t.value){S.start=t.value;save()}
+  else if(t.dataset.set==='days'){S.days=Math.max(7,Math.min(365,+t.value||90));save()}
+  else if(t.dataset.set==='wgoal'){S.waterGoal=Math.max(.5,Math.min(10,+t.value||3));save()}
+  else if(t.dataset.set==='sgoal'){S.sleepGoal=Math.max(3,Math.min(14,+t.value||8));save()}
+  else if(t.dataset.set==='client'){S.driveClientId=t.value.trim();persist()}
+});
+
+/* ---------- transfer link (no server) ---------- */
+async function pack(){
+  const {driveClientId,...d}=S;let bytes=new TextEncoder().encode(JSON.stringify(d)),pre='p';
+  if(window.CompressionStream){bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());pre='z'}
+  let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
+  return pre+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+async function unpack(t){
+  const bin=atob(t.slice(1).replace(/-/g,'+').replace(/_/g,'/'));let bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  if(t[0]==='z')bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+async function makeLink(share){
+  const url=location.origin+location.pathname+'#d='+await pack();
+  if(share&&navigator.share){try{await navigator.share({title:'Winter Arc data',url})}catch(e){}return}
+  try{await navigator.clipboard.writeText(url);toast('Link copied. Open it on your other device.')}catch(e){prompt('Copy this link',url)}
+}
+(async()=>{
+  const m=location.hash.match(/^#d=(.+)$/);if(!m)return;
+  try{const j=await unpack(m[1]);
+    if(Array.isArray(j.habits)&&confirm('Replace the data on this device with the data from this link?')){S={...DEF,...j,driveClientId:S.driveClientId};persist()}
+  }catch(e){toast('That link is not valid')}
+  history.replaceState(null,'',location.pathname+location.search);render();
+})();
+
+/* ---------- Google Drive sync (hidden appData folder, no server) ---------- */
+let tok=null,tc=null,fileId=null;
+function driveConnect(){
+  if(!S.driveClientId)return toast('Paste your Client ID first');
+  if(!window.google||!google.accounts)return toast('Google script not loaded. Check your connection.');
+  tc=google.accounts.oauth2.initTokenClient({client_id:S.driveClientId,scope:'https://www.googleapis.com/auth/drive.appdata',
+    callback:r=>{if(r.access_token){tok=r.access_token;toast('Drive connected');driveSync(true)}else toast('Drive connection was cancelled')}});
+  tc.requestAccessToken();
+}
+async function dfetch(url,opt={}){
+  opt.headers={...(opt.headers||{}),Authorization:'Bearer '+tok};
+  const r=await fetch(url,opt);if(!r.ok)throw new Error(r.status);return r;
+}
+async function driveSync(loud){
+  try{
+    if(!fileId){
+      const r=await dfetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'winter-arc.json'&fields=files(id)");
+      fileId=((await r.json()).files[0]||{}).id||null;
+    }
+    if(fileId){
+      const remote=await(await dfetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`)).json();
+      if(remote.updated>S.updated){S={...DEF,...remote,driveClientId:S.driveClientId};persist();render();if(loud)toast('Loaded newer data from Drive');return}
+    }
+    const {driveClientId,...data}=S,body=JSON.stringify(data);
+    if(fileId){await dfetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json'},body})}
+    else{
+      const b='wa'+uid(),mp=`--${b}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify({name:'winter-arc.json',parents:['appDataFolder']})}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--`;
+      const r=await dfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:mp});
+      fileId=(await r.json()).id;
+    }
+    if(loud)toast('Synced to Drive');
+  }catch(e){tok=null;render();toast('Drive session ended. Tap Connect Drive again.')}
+}
+
+render();
+</script>
+</body>
+</html>
